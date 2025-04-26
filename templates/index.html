@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Face Skin Analyzer</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    #result { margin-top: 1rem; }
+    .rec { display: inline-block; margin: .5rem; }
+    .rec img { width: 100px; height: auto; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Face Skin Analyzer</h1>
+  <p>Upload a face image and get back the most likely condition.</p>
+
+  <form id="upload-form">
+    <input type="file" name="file" accept="image/*" required />
+    <button type="submit">Predict</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('upload-form');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultDiv.innerHTML = 'Analyzing…';
+
+      const formData = new FormData(form);
+      const resp = await fetch('/predict', { method: 'POST', body: formData });
+      const data = await resp.json();
+
+      if (data.error) {
+        resultDiv.textContent = data.error;
+        return;
+      }
+
+      // Display top label + confidence
+      resultDiv.innerHTML = `
+        <h2>Result: ${data.label}</h2>
+        <p>Confidence: ${(data.confidence * 100).toFixed(1)}%</p>
+      `;
+
+      // Optional: show recommendations
+      if (data.recommendations && data.recommendations.length) {
+        const recHtml = data.recommendations.map(r => `
+          <div class="rec">
+            <a href="${r.link}" target="_blank">
+              <img src="${r.image}" alt="product">
+            </a>
+          </div>
+        `).join('');
+        resultDiv.insertAdjacentHTML('beforeend',
+          `<h3>Recommended Solutions:</h3><div>${recHtml}</div>`
+        );
+      }
+    });
+  </script>
+</body>
+</html>

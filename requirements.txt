@@ -1,0 +1,4 @@
+flask
+fastai
+pandas
+uvicorn       # if you switch to ASGI/FastAPI
